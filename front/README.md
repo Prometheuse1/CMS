@@ -63,7 +63,24 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/a
 
 ### Deployment
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Deploy the frontend and backend as separate Vercel projects:
+
+1. For the frontend project, set the Root Directory to `front` and add
+   `REACT_APP_API_URL` with the backend's URL (for example,
+   `https://cms-ten-puce.vercel.app`). This variable is embedded at build time.
+2. For the backend project, set the Root Directory to `back` and configure
+   `MONGO_URI` and `FRONTEND_URL` in Vercel's Environment Variables. Set
+   `FRONTEND_URL` to the frontend's production origin, without a trailing
+   slash. Multiple frontend origins can be comma-separated.
+3. Redeploy both projects after changing environment variables.
+
+Use the corresponding variables in `front/.env` and `back/.env` for local
+development; `.env.example` files show their expected format. Do not commit
+`.env` files.
+
+The npm install-script and deprecated-package messages are warnings and are
+not the cause of browser fetch failures. A missing frontend API URL or a
+backend CORS origin that does not match the deployed frontend can cause them.
 
 ### `npm run build` fails to minify
 
