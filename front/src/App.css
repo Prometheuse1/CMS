@@ -1,0 +1,13 @@
+.App {
+  max-width: 720px;
+  margin: 3rem auto;
+  padding: 0 1.5rem;
+}
+
+.App h1 {
+  color: #282c34;
+}
+
+.App li {
+  margin: 0.75rem 0;
+}
