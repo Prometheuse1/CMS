@@ -8,7 +8,7 @@ function App() {
   useEffect(() => {
     const controller = new AbortController();
 
-    fetch('http://localhost:5000/api/etudiants', {
+    fetch(`${process.env.REACT_APP_API_URL}/api/etudiants`, {
       signal: controller.signal,
     })
       .then((response) => {
