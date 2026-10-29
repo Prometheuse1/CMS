@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import App from './App';
 
 afterEach(() => {
@@ -24,4 +24,30 @@ test('displays an error when the API request fails', async () => {
   expect(await screen.findByRole('alert')).toHaveTextContent(
     'Impossible de charger les étudiants'
   );
+});
+
+test('removes a trailing slash from the API URL', async () => {
+  const originalApiUrl = process.env.REACT_APP_API_URL;
+  process.env.REACT_APP_API_URL = 'https://api.example.com/';
+  jest.spyOn(global, 'fetch').mockResolvedValue({
+    ok: true,
+    json: async () => [],
+  });
+
+  try {
+    await act(async () => {
+      render(<App />);
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://api.example.com/api/etudiants',
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
+  } finally {
+    if (originalApiUrl === undefined) {
+      delete process.env.REACT_APP_API_URL;
+    } else {
+      process.env.REACT_APP_API_URL = originalApiUrl;
+    }
+  }
 });

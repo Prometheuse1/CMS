@@ -7,8 +7,9 @@ function App() {
 
   useEffect(() => {
     const controller = new AbortController();
+    const apiUrl = (process.env.REACT_APP_API_URL || '').replace(/\/+$/, '');
 
-    fetch(`${process.env.REACT_APP_API_URL}/api/etudiants`, {
+    fetch(`${apiUrl}/api/etudiants`, {
       signal: controller.signal,
     })
       .then((response) => {
