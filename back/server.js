@@ -9,16 +9,12 @@ const etudiantRoutes = require("./routes/etudiantRoutes");
 const statusRoutes = require("./routes/statusRoutes");
 const app = express();
 const PORT = process.env.PORT || 5000;
-const frontendOrigins = (process.env.FRONTEND_URL || "")
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter(Boolean);
 
 app.use(cors({
     origin: [
         "http://localhost:5173",
         "http://localhost:3000",
-        ...frontendOrigins,
+        "https://front-b271.vercel.app",
     ],
 }));
 app.use(express.json());
