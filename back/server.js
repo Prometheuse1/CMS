@@ -13,6 +13,7 @@ const statusRoutes = require("./routes/statusRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+let databaseConnection;
 
 const allowedOrigins = new Set([
     "http://localhost:5173",
@@ -52,6 +53,33 @@ app.use(helmet());
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "10kb" }));
 
+async function connectToDatabase() {
+    if (mongoose.connection.readyState === 1) {
+        return;
+    }
+    if (!process.env.MONGO_URI) {
+        throw new Error("MONGO_URI est absent ou vide");
+    }
+    if (!databaseConnection) {
+        databaseConnection = mongoose.connect(process.env.MONGO_URI).finally(() => {
+            databaseConnection = null;
+        });
+    }
+    await databaseConnection;
+}
+
+app.use(["/api/auth", "/api/etudiants"], async (req, res, next) => {
+    if (process.env.NODE_ENV === "test") {
+        return next();
+    }
+    try {
+        await connectToDatabase();
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+
 app.use("/", statusRoutes);
 app.use("/api", apiLimiter);
 app.use("/api/auth", authLimiter, authRoutes);
@@ -79,12 +107,7 @@ app.use((err, req, res, next) => {
 async function startServer() {
     try {
         getJwtSecret(); // échoue au démarrage si JWT_SECRET est absent ou faible
-        const mongoUri = process.env.MONGO_URI;
-        if (!mongoUri) {
-            throw new Error("MONGO_URI est absent ou vide dans le fichier .env");
-        }
-
-        await mongoose.connect(mongoUri);
+        await connectToDatabase();
         console.log("MongoDB est connecté");
         app.listen(PORT, () => {
             console.log(`Serveur lancé sur le port ${PORT}`);
@@ -95,7 +118,7 @@ async function startServer() {
     }
 }
 
-if (process.env.NODE_ENV !== "test") {
+if (require.main === module && process.env.NODE_ENV !== "test") {
     startServer();
 }
 

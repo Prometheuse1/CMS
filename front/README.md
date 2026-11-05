@@ -69,9 +69,10 @@ Deploy the frontend and backend as separate Vercel projects:
    `REACT_APP_API_URL` with the backend's URL (for example,
    `https://cms-ten-puce.vercel.app`). This variable is embedded at build time.
 2. For the backend project, set the Root Directory to `back` and configure
-   `MONGO_URI` in Vercel's Environment Variables. The production frontend
-   origin `https://front-b271.vercel.app` is allowed in the backend CORS
-   configuration.
+   `MONGO_URI` and a `JWT_SECRET` of at least 32 characters in Vercel's
+   Environment Variables. The production frontend origins
+   `https://front-b271.vercel.app` and `https://cms-sigma-coral.vercel.app`
+   are allowed in the backend CORS configuration.
 3. Redeploy both projects after changing environment variables. If the
    frontend's domain changes, update the allowed origin in `back/server.js`
    and redeploy the backend.
