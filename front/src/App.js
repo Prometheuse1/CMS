@@ -1,8 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import './App.css';
 
-const API_URL = (process.env.REACT_APP_API_URL || window.location.origin).replace(/\/+$/, '');
+const DEFAULT_API_URL = process.env.NODE_ENV === 'development'
+  ? 'http://localhost:5000'
+  : window.location.origin;
+const API_URL = (process.env.REACT_APP_API_URL || DEFAULT_API_URL).replace(/\/+$/, '');
 const SESSION_KEY = 'cms_session';
+
+const requestErrorMessage = (error) =>
+  error instanceof TypeError && error.message === 'Failed to fetch'
+    ? 'Impossible de joindre le serveur API. Vérifiez son URL et sa configuration CORS.'
+    : error.message;
 
 const loadSession = () => {
   try { return JSON.parse(sessionStorage.getItem(SESSION_KEY)) || null; } catch { return null; }
@@ -80,7 +88,7 @@ function Dashboard({ token, user, onLogout, theme, setTheme }) {
       const data = await response.json();
       setEtudiants(Array.isArray(data) ? data : []);
     } catch (error) {
-      notify(error.message, 'error');
+      notify(requestErrorMessage(error), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -205,6 +213,7 @@ function Dashboard({ token, user, onLogout, theme, setTheme }) {
         id={name}
         name={name}
         value={formData[name]}
+        autoComplete="off"
         onChange={handleChange}
         aria-invalid={!!fieldErrors[name]}
         aria-describedby={fieldErrors[name] ? `${name}-err` : undefined}
@@ -266,6 +275,7 @@ function Dashboard({ token, user, onLogout, theme, setTheme }) {
           <input
             type="search"
             className="search"
+            autoComplete="off"
             placeholder="Rechercher un nom ou un e-mail…"
             aria-label="Rechercher"
             value={query}
@@ -352,7 +362,7 @@ function Login({ onAuth, notice, theme, setTheme }) {
       if (!response.ok) throw new Error(data?.message || 'Échec de l’authentification');
       onAuth({ token: data.token, user: data.utilisateur });
     } catch (err) {
-      setError(err.message);
+      setError(requestErrorMessage(err));
     } finally {
       setBusy(false);
     }
@@ -371,18 +381,18 @@ function Login({ onAuth, notice, theme, setTheme }) {
         {mode === 'register' && (
           <div className="field">
             <label htmlFor="a-nom">Nom</label>
-            <input id="a-nom" name="nom" value={form.nom} onChange={change} autoComplete="name" required />
+            <input id="a-nom" name="nom" value={form.nom} onChange={change} autoComplete="off" required />
           </div>
         )}
         <div className="field">
           <label htmlFor="a-email">Email</label>
           <input id="a-email" name="email" type="email" value={form.email} onChange={change}
-            autoComplete="username" inputMode="email" required />
+            autoComplete="off" inputMode="email" required />
         </div>
         <div className="field">
           <label htmlFor="a-pwd">Mot de passe</label>
           <input id="a-pwd" name="password" type="password" value={form.password} onChange={change}
-            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+            autoComplete="off"
             minLength={mode === 'register' ? 8 : undefined} maxLength={72} required />
         </div>
         {error && <p role="alert" className="field-error auth-error">{error}</p>}
