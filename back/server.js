@@ -9,13 +9,22 @@ const etudiantRoutes = require("./routes/etudiantRoutes");
 const statusRoutes = require("./routes/statusRoutes");
 const app = express();
 const PORT = process.env.PORT || 5000;
+const allowedOrigins = new Set([
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://front-b271.vercel.app",
+    process.env.FRONTEND_URL,
+].filter(Boolean));
 
 app.use(cors({
-    origin: [
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "https://front-b271.vercel.app",
-    ],
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.has(origin)) {
+            callback(null, true);
+            return;
+        }
+
+        callback(new Error("Origine non autorisée par CORS"));
+    },
 }));
 app.use(express.json());
 app.use("/", statusRoutes);
