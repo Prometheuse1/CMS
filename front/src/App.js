@@ -114,6 +114,8 @@ function App() {
             value={formData.nom}
             onChange={handleChange}
             placeholder="Nom complet"
+            autoComplete="off"
+            spellCheck={false}
           />
         </label>
 
@@ -125,6 +127,8 @@ function App() {
             value={formData.email}
             onChange={handleChange}
             placeholder="email@exemple.com"
+            autoComplete="off"
+            spellCheck={false}
           />
         </label>
 

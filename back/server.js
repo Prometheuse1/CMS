@@ -13,19 +13,25 @@ const allowedOrigins = new Set([
     "http://localhost:5173",
     "http://localhost:3000",
     "https://front-b271.vercel.app",
+    "https://cms-sigma-coral.vercel.app",
     process.env.FRONTEND_URL,
 ].filter(Boolean));
 
-app.use(cors({
+const corsOptions = {
     origin: (origin, callback) => {
-        if (!origin || allowedOrigins.has(origin)) {
+        if (!origin || allowedOrigins.has(origin) || origin.endsWith(".vercel.app")) {
             callback(null, true);
             return;
         }
 
         callback(new Error("Origine non autorisée par CORS"));
     },
-}));
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 app.use("/", statusRoutes);
 app.use("/api/etudiants", etudiantRoutes);
