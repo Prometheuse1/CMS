@@ -1,105 +1,73 @@
 const Etudiant = require("../models/Etudiant");
+const { validateEtudiant } = require("../utils/validation");
+
+function handleWriteError(error, res, fallback) {
+    if (error && error.code === 11000) {
+        return res.status(409).json({ message: "Cette adresse e-mail est déjà utilisée" });
+    }
+    console.error(fallback, error);
+    res.status(500).json({ message: "Erreur serveur" });
+}
 
 async function getEtudiants(req, res) {
     try {
-        const etudiants = await Etudiant.find();
-        res.json(etudiants);
+        res.json(await Etudiant.find());
     } catch (error) {
+        console.error("getEtudiants :", error);
         res.status(500).json({ message: "Erreur serveur" });
     }
 }
 
 async function createEtudiant(req, res) {
+    const { data, errors } = validateEtudiant(req.body);
+    if (errors.length) return res.status(400).json({ message: errors.join(". ") });
+
     try {
-        const nouvelEtudiant = new Etudiant({
-            nom: req.body.nom,
-            email: req.body.email,
-            age: req.body.age,
-        });
-        const resultat = await nouvelEtudiant.save();
+        const resultat = await new Etudiant(data).save();
         res.status(201).json(resultat);
     } catch (error) {
-        res.status(400).json({
-            message: "Impossible de créer l'étudiant",
-        });
+        handleWriteError(error, res, "createEtudiant :");
     }
 }
 
 async function getEtudiant(req, res) {
     try {
         const etudiant = await Etudiant.findById(req.params.id);
-        if (!etudiant) {
-            return res.status(404).json({ message: "Étudiant introuvable." });
-        }
-
+        if (!etudiant) return res.status(404).json({ message: "Étudiant introuvable" });
         res.json(etudiant);
     } catch (error) {
+        console.error("getEtudiant :", error);
         res.status(500).json({ message: "Erreur serveur" });
     }
 }
 
-async function updateEtudiant(req, res) {
-    try {
-        const etudiant = await Etudiant.findByIdAndUpdate(
-            req.params.id,
-            {
-                nom: req.body.nom,
-                email: req.body.email,
-                age: req.body.age,
-            },
-            { new: true, runValidators: true }
-        );
-        if (!etudiant) {
-            return res.status(404).json({
-                message: "Étudiant introuvable",
-            });
+function updateWith(partial) {
+    return async function (req, res) {
+        const { data, errors } = validateEtudiant(req.body, partial);
+        if (errors.length) return res.status(400).json({ message: errors.join(". ") });
+
+        try {
+            const etudiant = await Etudiant.findByIdAndUpdate(
+                req.params.id,
+                { $set: data },
+                { new: true, runValidators: true }
+            );
+            if (!etudiant) return res.status(404).json({ message: "Étudiant introuvable" });
+            res.json(etudiant);
+        } catch (error) {
+            handleWriteError(error, res, "updateEtudiant :");
         }
-
-        res.json(etudiant);
-    } catch (error) {
-        res.status(400).json({
-            message: "Modification impossible",
-        });
-    }
-}
-
-async function patchEtudiant(req, res) {
-    try {
-        const etudiant = await Etudiant.findByIdAndUpdate(
-            req.params.id,
-            {
-                $set: {
-                    nom: req.body.nom,
-                    email: req.body.email,
-                    age: req.body.age,
-                },
-            },
-            { new: true, runValidators: true }
-        );
-        if (!etudiant) {
-            return res.status(404).json({ message: "Étudiant introuvable." });
-        }
-
-        res.json(etudiant);
-    } catch (error) {
-        res.status(400).json({ message: "Modification impossible" });
-    }
+    };
 }
 
 async function deleteEtudiant(req, res) {
     try {
         const etudiant = await Etudiant.findByIdAndDelete(req.params.id);
-        if (!etudiant) {
-            return res.status(404).json({
-                message: "Étudiant introuvable",
-            });
-        }
-
+        if (!etudiant) return res.status(404).json({ message: "Étudiant introuvable" });
         res.json({ message: "Étudiant supprimé" });
     } catch (error) {
-        res.status(400).json({
-            message: "Suppression impossible",
-        });
+        console.error("deleteEtudiant :", error);
+        res.status(500).json({ message: "Erreur serveur" });
     }
 }
 
@@ -107,7 +75,7 @@ module.exports = {
     getEtudiants,
     createEtudiant,
     getEtudiant,
-    updateEtudiant,
-    patchEtudiant,
+    updateEtudiant: updateWith(false),
+    patchEtudiant: updateWith(true),
     deleteEtudiant,
 };

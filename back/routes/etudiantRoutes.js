@@ -7,14 +7,15 @@ const {
     patchEtudiant,
     deleteEtudiant,
 } = require("../controllers/etudiantController");
+const validateId = require("../middleware/validateId");
 
 const router = express.Router();
 
 router.get("/", getEtudiants);
 router.post("/", createEtudiant);
-router.get("/:id", getEtudiant);
-router.put("/:id", updateEtudiant);
-router.patch("/:id", patchEtudiant);
-router.delete("/:id", deleteEtudiant);
+router.get("/:id", validateId, getEtudiant);
+router.put("/:id", validateId, updateEtudiant);
+router.patch("/:id", validateId, patchEtudiant);
+router.delete("/:id", validateId, deleteEtudiant);
 
 module.exports = router;
